@@ -1,6 +1,4 @@
 # Tennis-Racquet-Store-CLI-App
-CLI App of tennis racquets with user input
-# Top 50 Movies CLI App
 
 ## Objectives
 
