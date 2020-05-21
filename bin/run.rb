@@ -1,3 +1,3 @@
 require "./config/environment"
 
-Cli.new.start
+Cli.new.call
