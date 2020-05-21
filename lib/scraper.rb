@@ -27,7 +27,7 @@ class RacquetScraper
 
   BASE_URL = "https://www.dickssportinggoods.com/f/tennis-racquets?pageNumber=0&pageSize=136"
 
-  attr_accessor :ind_page
+  attr_accessor :page
 
   def initialize
     @page = Nokogiri::HTML(HTTParty.get(BASE_URL))
@@ -36,10 +36,9 @@ class RacquetScraper
   def scrape_racquets
     # ind_page.css(".dsg-react-product-card").each do |racquet|
     page.css(".dsg-react-product-card").each do |racquet|
-      binding.pry
       name = racquet.css("a").text
       price = racquet.css(".rs_item_price").text
-      rating = racquet.css(".rs_rating_container a").text + "/5"
+      rating = racquet.css(".rs_rating_container a").first&.attributes&.dig("aria-label")&.value
       url = racquet.css(".card_image a").attr("href").text
       brand = Brand.find_by_name(name)
       Racquet.new(name, price, rating, url, brand)
