@@ -12,29 +12,27 @@ class Cli
   end
 
   def welcome
-    puts " "
-    puts "Welcome to your virtual tennis racquet assistant!".colorize(:green).bold
-    puts "I will show you available racquets and info " \
-    "based on a specific brand.".colorize(:green).bold
-    puts " "
+    puts_green "\nWelcome to your virtual tennis racquet assistant!"
+    puts_green "I will show you available racquets and info " \
+    "based on a specific brand.\n\n"
   end
 
   def start
-    puts " "
     list_brands
+    brand_loop
+  end
+
+  def brand_loop
     loop do
       prompt_to_input
       input = gets.strip
-
       if input == "exit"
         goodbye_message
-        exit
       elsif input.to_i >= 1 && input.to_i <= 6
         brand = brand_locator(input.to_i)
         list_by_brand(brand)
         prompt_racquet_choice(brand)
-      elsif puts "Invalid entry, please choose a brand from 1 - 6".colorize(:red).bold
-        puts " "
+      elsif puts_red "Invalid entry, please choose a brand from 1 - 6\n\n"
         start
       end
     end
@@ -43,18 +41,18 @@ class Cli
   def list_brands
     Brand.all.each_with_index do |brand, index|
       puts " #{index + 1}  " + brand.name
-      puts "--------------------------------------"
+      puts "-------------------"
     end
   end
 
   def prompt_to_input
-    puts " "
-    puts "Please select a brand by its corrisponding #, " \
-         "or type exit to quit:".colorize(:green).bold
+    puts_green "\nPlease select a brand by its corrisponding #, " \
+         "or type exit to quit:"
   end
 
   def goodbye_message
-    puts "See you later, have a great day!"
+    puts_green "See you later, have a great day!"
+    exit
   end
 
   def brand_locator(input)
@@ -62,20 +60,13 @@ class Cli
   end
 
   def list_by_brand(brand)
-    puts " "
-    puts "Here are all the #{brand.name} racquet's that we carry."
-    puts " "
-    Racquet.select_by_brand(brand).each_with_index do |racquet, index|
-      puts " #{index + 1}  #{racquet.name} ~~~~ " \
-          "#{racquet.price} ~~~~ #{racquet.rating}"
-      puts " "
-    end
+    puts "Here are the #{brand.name} racquets.\n\n".colorize(:light_blue)
+    racquet_list_conditional(brand)
   end
 
   def prompt_racquet_choice(brand)
-    puts " "
-    puts  "Select a racquet # to read a brief " \
-          "overview or enter 'back' to select another brand".colorize(:green).bold
+    puts_green "\nSelect a racquet # to read a brief " \
+          "overview or enter 'back' to select another brand"
     user_input(brand)
   end
 
@@ -83,26 +74,49 @@ class Cli
     RacquetScraper.new.scrape_racquets_page(racquet)
     puts "Info:".colorize(:red).on_blue.bold
     puts "#{racquet.info} "
-    puts " "
-    puts "Select another racquet # for info " \
-    "or 'back' to choose new brand".colorize(:green).bold
+    puts_green "\nSelect another racquet # for info " \
+    "or 'back' to choose new brand"
   end
 
   def user_input(brand)
+    racquets_for_brand = Racquet.select_by_brand(brand)
     loop do
       input = gets.strip
       if input == "back"
         start
-      elsif input.to_i >= 1
-        racquet = Racquet.select_by_brand(brand)[input.to_i - 1]
+      elsif input.to_i >= 1 && input.to_i <= racquets_for_brand.length
+        racquet = racquets_for_brand[input.to_i - 1]
         racquet_description(racquet)
-      elsif puts "Invalid entry".colorize(:red).bold
-        puts " "
+      elsif puts_red "Invalid entry, select valid # or 'back' to return \n\n"
       end
     end
   end
 
   def racquet_locator(input)
     Racquet.find_by_id(input)
+  end
+
+  def racquet_list_conditional(brand)
+    if Racquet.select_by_brand(brand).any?
+      Racquet.select_by_brand(brand).each_with_index do |racquet, index|
+        puts " \n#{index + 1}  #{racquet.name} ~~~~ " \
+            "#{racquet.price} ~~~~ " \
+            "#{racquet.rating.positive? ? racquet.rating.round(2).to_s + '/5' : 'n/a'}"
+      end
+    else
+      puts_red "Sorry we are currently out of stock!"
+      puts_red "Select another brand or 'exit' to leave"
+      brand_loop
+    end
+  end
+
+private
+
+  def puts_green(string)
+    puts string.colorize(:green).bold
+  end
+
+  def puts_red(string)
+    puts string.colorize(:red).bold
   end
 end
