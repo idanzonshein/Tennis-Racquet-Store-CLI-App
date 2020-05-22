@@ -11,18 +11,16 @@ class Cli
     start
   end
 
-    # user picks racuet
-    # dig into racquet show page - url
-
-
   def welcome
     puts " "
-    puts "Welcome to your virtual tennis racquet assistant!".bold
-    puts "I will show you available racquets and info based on a specific brand.".bold
+    puts "Welcome to your virtual tennis racquet assistant!".colorize(:green).bold
+    puts "I will show you available racquets and info " \
+    "based on a specific brand.".colorize(:green).bold
     puts " "
   end
 
   def start
+    puts " "
     list_brands
     loop do
       prompt_to_input
@@ -33,8 +31,8 @@ class Cli
         exit
       elsif input.to_i >= 1 && input.to_i <= 6
         brand = brand_locator(input.to_i)
-        racquets_by_brand(brand)
-        # prompt_racquet_choice
+        list_by_brand(brand)
+        prompt_racquet_choice(brand)
       elsif puts "Invalid entry, please choose a brand from 1 - 6".colorize(:red).bold
         puts " "
         start
@@ -63,21 +61,48 @@ class Cli
     Brand.find_by_id(input)
   end
 
-
-  def racquets_by_brand(brand)
+  def list_by_brand(brand)
     puts " "
     puts "Here are all the #{brand.name} racquet's that we carry."
     puts " "
-
     Racquet.select_by_brand(brand).each_with_index do |racquet, index|
       puts " #{index + 1}  #{racquet.name} ~~~~ " \
-           "#{racquet.price} ~~~~ #{racquet.rating}"
+          "#{racquet.price} ~~~~ #{racquet.rating}"
       puts " "
     end
-    # racquet_link
   end
 
+  def prompt_racquet_choice(brand)
+    puts " "
+    puts  "Select a racquet # to read a brief " \
+          "overview or enter 'back' to select another brand".colorize(:green).bold
+    user_input(brand)
+  end
 
+  def racquet_description(racquet)
+    RacquetScraper.new.scrape_racquets_page(racquet)
+    puts "Info:".colorize(:red).on_blue.bold
+    puts "#{racquet.info} "
+    puts " "
+    puts "Select another racquet # for info " \
+    "or 'back' to choose new brand".colorize(:green).bold
+  end
 
+  def user_input(brand)
+    loop do
+      input = gets.strip
+      if input == "back"
+        start
+      elsif input.to_i >= 1
+        racquet = Racquet.select_by_brand(brand)[input.to_i - 1]
+        racquet_description(racquet)
+      elsif puts "Invalid entry".colorize(:red).bold
+        puts " "
+      end
+    end
+  end
 
+  def racquet_locator(input)
+    Racquet.find_by_id(input)
+  end
 end

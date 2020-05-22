@@ -5,7 +5,7 @@
 
 class Racquet
 
-  attr_accessor :name, :price, :rating, :url, :brand, :info
+  attr_accessor :name, :price, :rating, :url, :brand, :info, :id
 
   @@all = []
 
@@ -17,6 +17,7 @@ class Racquet
     @brand = brand
     @info = info
     @@all << self
+    @id = @@all.count
   end
 
   def self.all
@@ -27,8 +28,7 @@ class Racquet
     all.select { |raquet| raquet.brand == brand }
   end
 
-
-
-
-
+  def self.find_by_id(id)
+    all.find { |racquet| racquet.id == id }
+  end
 end
