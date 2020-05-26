@@ -2,8 +2,10 @@
 # This is where I will use 'puts'
 # This will never use nokogiri
 # This will have to invoke Scraper
+require_relative "./color.rb"
 
 class Cli
+  include Color
   def call
     BrandScraper.new.scrape_brands
     RacquetScraper.new.scrape_racquets
@@ -12,9 +14,7 @@ class Cli
   end
 
   def welcome
-    puts_green "\nWelcome to your virtual tennis racquet assistant!"
-    puts_green "I will show you available racquets and info " \
-    "based on a specific brand.\n\n"
+    puts Interface.welcome_message
   end
 
   def start
@@ -83,17 +83,24 @@ class Cli
   end
 
   def user_input(brand)
-    racquets_for_brand = Racquet.select_by_brand(brand)
     loop do
-      input = gets.strip
+      input = gets.strip.downcase
       if input == "back"
         start
-      elsif input.to_i >= 1 && input.to_i <= racquets_for_brand.length
-        racquet = racquets_for_brand[input.to_i - 1]
-        racquet_description(racquet)
-      elsif puts_red "Invalid entry, select valid # or 'back' to return \n\n"
+      elsif input.to_i >= 1 && input.to_i <= racquets_for_brand(brand).length
+        racquet_description(racquet_for_brand_and_input(brand, input))
+      else
+        puts_red "Invalid entry, select valid # or 'back' to return \n\n"
       end
     end
+  end
+
+  def racquets_for_brand(brand)
+    Racquet.select_by_brand(brand)
+  end
+
+  def racquet_for_brand_and_input(brand, input)
+    racquets_for_brand(brand)[input.to_i - 1]
   end
 
   def racquet_locator(input)
@@ -101,25 +108,11 @@ class Cli
   end
 
   def racquet_list_conditional(brand)
-    if Racquet.select_by_brand(brand).any?
-      Racquet.select_by_brand(brand).each_with_index do |racquet, index|
-        puts " \n#{index + 1}  #{racquet.name} ~~~~ " \
-          "#{racquet.price} ~~~~ " \
-          "#{racquet.rating.positive? ? racquet.rating.round(2).to_s + '/5' : 'n/a'}"
-      end
+    if racquets_for_brand(brand).any?
+      Interface.puts_racquet_list(racquets_for_brand(brand))
     else
       Interface.list_error
       brand_loop
     end
-  end
-
-private
-
-  def puts_green(string)
-    puts string.colorize(:green).bold
-  end
-
-  def puts_red(string)
-    puts string.colorize(:red).bold
   end
 end
