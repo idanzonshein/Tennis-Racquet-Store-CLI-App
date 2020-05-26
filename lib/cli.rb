@@ -24,18 +24,21 @@ class Cli
 
   def brand_loop
     loop do
-      prompt_to_input
-      input = gets.strip
+      input = prompt_to_input
       if input == "exit"
         goodbye_message
       elsif input.to_i >= 1 && input.to_i <= 6
-        brand = brand_locator(input.to_i)
-        list_by_brand(brand)
-        prompt_racquet_choice(brand)
+        process_brand(input.to_i)
       elsif puts_red "Invalid entry, please choose a brand from 1 - 6\n\n"
         start
       end
     end
+  end
+
+  def process_brand(input)
+    brand = brand_locator(input)
+    list_by_brand(brand)
+    prompt_racquet_choice(brand)
   end
 
   def list_brands
@@ -47,7 +50,8 @@ class Cli
 
   def prompt_to_input
     puts_green "\nPlease select a brand by its corrisponding #, " \
-         "or type exit to quit:"
+               "or type exit to quit:"
+    gets.strip.downcase
   end
 
   def goodbye_message
@@ -100,12 +104,11 @@ class Cli
     if Racquet.select_by_brand(brand).any?
       Racquet.select_by_brand(brand).each_with_index do |racquet, index|
         puts " \n#{index + 1}  #{racquet.name} ~~~~ " \
-            "#{racquet.price} ~~~~ " \
-            "#{racquet.rating.positive? ? racquet.rating.round(2).to_s + '/5' : 'n/a'}"
+          "#{racquet.price} ~~~~ " \
+          "#{racquet.rating.positive? ? racquet.rating.round(2).to_s + '/5' : 'n/a'}"
       end
     else
-      puts_red "Sorry we are currently out of stock!"
-      puts_red "Select another brand or 'exit' to leave"
+      Interface.list_error
       brand_loop
     end
   end
